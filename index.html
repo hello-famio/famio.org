@@ -128,6 +128,97 @@
             line-height: 1.6;
         }
 
+        .how-it-works {
+            background: white;
+            border-radius: 30px;
+            padding: 60px 40px;
+            margin: 60px 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        .how-it-works h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #2d3748;
+            margin-bottom: 50px;
+        }
+
+        .how-it-works h2 .accent {
+            background: linear-gradient(135deg, #ff6b9d 0%, #4ecdc4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .step {
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            line-height: 60px;
+            border-radius: 50%;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .step:nth-child(1) .step-number {
+            background: linear-gradient(135deg, #ff6b9d 0%, #ff8fab 100%);
+        }
+
+        .step:nth-child(2) .step-number {
+            background: linear-gradient(135deg, #4ecdc4 0%, #6eddd6 100%);
+        }
+
+        .step:nth-child(3) .step-number {
+            background: linear-gradient(135deg, #ffe66d 0%, #ffed8a 100%);
+        }
+
+        .step-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+
+        .step-description {
+            color: #718096;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .email-example {
+            background: linear-gradient(135deg, #f0f9ff 0%, #f0fdf4 100%);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .email-example-text {
+            font-size: 1.2rem;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .email-example-text .email-domain {
+            color: #4ecdc4;
+            font-weight: 700;
+        }
+
         .cta-section {
             text-align: center;
             padding: 60px 20px;
@@ -179,6 +270,27 @@
 
             .features {
                 grid-template-columns: 1fr;
+            }
+
+            .how-it-works {
+                padding: 40px 20px;
+                margin: 40px 10px;
+            }
+
+            .how-it-works h2 {
+                font-size: 2rem;
+            }
+
+            .steps {
+                grid-template-columns: 1fr;
+            }
+
+            .email-example {
+                padding: 20px;
+            }
+
+            .email-example-text {
+                font-size: 1rem;
             }
 
             .cta-button {
@@ -235,6 +347,43 @@
                     Built with privacy in mind. Your family's emails are protected with enterprise-grade 
                     security, giving you peace of mind.
                 </p>
+            </div>
+        </section>
+
+        <section class="how-it-works">
+            <div class="container">
+                <h2>How <span class="accent">Famio</span> Works</h2>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <h3 class="step-title">Register Your @famio.org Email</h3>
+                        <p class="step-description">
+                            Choose a unique email address ending in @famio.org that represents your family. 
+                            Make it memorable and easy to share.
+                        </p>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <h3 class="step-title">Choose Forwarding Addresses</h3>
+                        <p class="step-description">
+                            Select one or more email addresses where you want messages forwarded. 
+                            Add mom, dad, kids, grandparents—anyone in your family circle.
+                        </p>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <h3 class="step-title">Start Receiving Messages</h3>
+                        <p class="step-description">
+                            Any email sent to your @famio.org address automatically forwards to all 
+                            your chosen addresses. Everyone stays connected!
+                        </p>
+                    </div>
+                </div>
+                <div class="email-example">
+                    <p class="email-example-text">
+                        Example: <strong>smithfamily</strong><span class="email-domain">@famio.org</span> → forwards to mom@gmail.com, dad@gmail.com, and kids@gmail.com
+                    </p>
+                </div>
             </div>
         </section>
 
