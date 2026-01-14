@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Famio - Family Email Forwarding Made Simple</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #fff5f5 0%, #f0f9ff 50%, #f0fdf4 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            padding: 30px 0;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ff6b9d 0%, #4ecdc4 50%, #ffe66d 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            color: #666;
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #2d3748;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .headline-accent {
+            background: linear-gradient(135deg, #ff6b9d 0%, #4ecdc4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subheadline {
+            font-size: 1.4rem;
+            color: #4a5568;
+            margin-bottom: 50px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin: 60px 0;
+            padding: 0 20px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .feature-icon {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .feature-card:nth-child(1) .feature-icon {
+            color: #ff6b9d;
+        }
+
+        .feature-card:nth-child(2) .feature-icon {
+            color: #4ecdc4;
+        }
+
+        .feature-card:nth-child(3) .feature-icon {
+            color: #ffe66d;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+
+        .feature-description {
+            color: #718096;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .cta-section {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 18px 50px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #ff6b9d 0%, #4ecdc4 100%);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 8px 25px rgba(78, 205, 196, 0.3);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(78, 205, 196, 0.4);
+        }
+
+        .cta-button:active {
+            transform: translateY(-1px);
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #a0aec0;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .subheadline {
+                font-size: 1.2rem;
+            }
+
+            .logo {
+                font-size: 2rem;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-button {
+                padding: 16px 40px;
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">Famio</div>
+            <div class="tagline">Keeping families connected, one email at a time</div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1>
+                    Email Forwarding Made <span class="headline-accent">Simple & Fun</span> for the Whole Family
+                </h1>
+                <p class="subheadline">
+                    Create memorable family email addresses that grow with your loved ones. 
+                    Forward messages effortlessly and keep everyone in the loop, always.
+                </p>
+            </div>
+        </section>
+
+        <section class="features">
+            <div class="feature-card">
+                <span class="feature-icon">👨‍👩‍👧‍👦</span>
+                <h3 class="feature-title">One Address, Everyone Included</h3>
+                <p class="feature-description">
+                    Create a single family email address that automatically forwards to all family members. 
+                    Never miss an important message again.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <span class="feature-icon">🎨</span>
+                <h3 class="feature-title">Custom Family Domains</h3>
+                <p class="feature-description">
+                    Choose a personalized email address that reflects your family's unique identity. 
+                    Make it memorable and meaningful.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <span class="feature-icon">🔒</span>
+                <h3 class="feature-title">Safe & Secure</h3>
+                <p class="feature-description">
+                    Built with privacy in mind. Your family's emails are protected with enterprise-grade 
+                    security, giving you peace of mind.
+                </p>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <div class="container">
+                <a href="#register" class="cta-button" onclick="alert('Thank you for your interest! Registration coming soon.'); return false;">
+                    Register Your Interest
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Famio. Made with ❤️ for families everywhere.</p>
+        </div>
+    </footer>
+</body>
+</html>
