@@ -248,6 +248,130 @@
             transform: translateY(-1px);
         }
 
+        /* Mailchimp embed form */
+        .mc-embed-signup {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .mc-embed-signup h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 25px;
+        }
+
+        .mc-embed-signup .mc-field-group {
+            margin-bottom: 20px;
+        }
+
+        .mc-embed-signup label {
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 8px;
+        }
+
+        .mc-embed-signup input[type="email"] {
+            width: 100%;
+            padding: 16px 20px;
+            font-size: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 50px;
+            background: white;
+            color: #2d3748;
+            transition: border-color 0.2s ease;
+        }
+
+        .mc-embed-signup input[type="email"]:focus {
+            outline: none;
+            border-color: #4ecdc4;
+        }
+
+        .mc-embed-signup input[type="email"]::placeholder {
+            color: #a0aec0;
+        }
+
+        .mc-embed-signup .mc-embed-subscribe {
+            width: 100%;
+            margin-top: 10px;
+            padding: 18px 50px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #ff6b9d 0%, #4ecdc4 100%);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 8px 25px rgba(78, 205, 196, 0.3);
+        }
+
+        .mc-embed-signup .mc-embed-subscribe:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(78, 205, 196, 0.4);
+        }
+
+        .mc-embed-signup .mc-embed-subscribe:active {
+            transform: translateY(-1px);
+        }
+
+        .mc-embed-signup #mce-responses {
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .mc-embed-signup .response {
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .mc-embed-signup #mce-error-response {
+            color: #c53030;
+            background: #fff5f5;
+        }
+
+        .mc-embed-signup #mce-success-response {
+            color: #276749;
+            background: #f0fff4;
+        }
+
+        .mc-embed-signup .thank-you-message {
+            display: none;
+            text-align: center;
+            padding: 40px 30px;
+            background: linear-gradient(135deg, #f0fdf4 0%, #f0f9ff 100%);
+            border-radius: 20px;
+            border: 2px solid #4ecdc4;
+        }
+
+        .mc-embed-signup .thank-you-message.visible {
+            display: block;
+        }
+
+        .mc-embed-signup .thank-you-message h4 {
+            font-size: 1.5rem;
+            color: #2d3748;
+            margin-bottom: 12px;
+        }
+
+        .mc-embed-signup .thank-you-message p {
+            color: #4a5568;
+            font-size: 1.05rem;
+        }
+
+        .mc-embed-signup.form-hidden .mc-form-wrap {
+            display: none;
+        }
+
+        #mailchimp_iframe {
+            display: none;
+            width: 0;
+            height: 0;
+            border: 0;
+        }
+
         footer {
             text-align: center;
             padding: 40px 20px;
@@ -387,13 +511,57 @@
             </div>
         </section>
 
-        <section class="cta-section">
-            <div class="container">
-                <a href="#register" class="cta-button" onclick="alert('Thank you for your interest! Registration coming soon.'); return false;">
-                    Register Your Interest
-                </a>
+        <section class="cta-section" id="register">
+            <div class="container">                
+                <div id="mc_embed_shell" class="mc-embed-signup">
+                   
+                    <div class="thank-you-message" id="mc-thank-you" aria-live="polite">
+                        <h4>Thanks for signing up!</h4>
+                        <p>Please check your email and click the confirmation link to join the Famio waitlist. We'll be in touch soon.</p>
+                    </div>
+                    <div class="mc-form-wrap">
+                        <h3>Register your interest</h3>
+                        <form action="https://famio.us18.list-manage.com/subscribe/post?u=b9b3d21b896347dc812f23a5a&amp;id=580aca0aca&amp;f_id=00feb2e6f0" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="mailchimp_iframe" novalidate>
+                            <div id="mc_embed_signup_scroll">
+                                <div class="mc-field-group">
+                                    <label for="mce-EMAIL">Email address <span class="asterisk">*</span></label>
+                                    <input type="email" name="EMAIL" id="mce-EMAIL" required placeholder="you@example.com" value="">
+                                </div>
+                                <div id="mce-responses" class="clear">
+                                    <div class="response" id="mce-error-response" style="display: none;"></div>
+                                    <div class="response" id="mce-success-response" style="display: none;"></div>
+                                </div>                                
+                                <div style="position: absolute; left: -5000px;" aria-hidden="true">
+                                    <input type="text" name="b_b9b3d21b896347dc812f23a5a_580aca0aca" tabindex="-1" value="">
+                                </div>
+                                <input type="submit" name="subscribe" id="mc-embedded-subscribe" class="mc-embed-subscribe" value="Register your interest">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <iframe name="mailchimp_iframe" id="mailchimp_iframe" title="Mailchimp signup"></iframe>
             </div>
         </section>
+        <script>
+            (function() {
+                var form = document.getElementById('mc-embedded-subscribe-form');
+                var shell = document.getElementById('mc_embed_shell');
+                var thankYou = document.getElementById('mc-thank-you');
+                var iframe = document.getElementById('mailchimp_iframe');
+                var submitted = false;
+                if (form && thankYou && iframe) {
+                    form.addEventListener('submit', function() {
+                        submitted = true;
+                    });
+                    iframe.addEventListener('load', function() {
+                        if (submitted) {
+                            shell.classList.add('form-hidden');
+                            thankYou.classList.add('visible');
+                        }
+                    });
+                }
+            })();
+        </script>
     </main>
 
     <footer>
