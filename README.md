@@ -244,7 +244,7 @@ bun run test:watch  # watch mode
 
 Test files go in `test/`. The framework is Vitest + `@cloudflare/vitest-pool-workers` — tests run inside a real Workers runtime, so D1 bindings work without mocking.
 
-See the [test plan](~/.gstack/projects/hello-famio-famio.org/bevan-main-eng-review-test-plan-20260330-165302.md) for the full list of 32 paths to cover.
+See `TODOS.md` for open items. The full 32-path test plan is documented in the eng review session.
 
 ## Deployment
 
