@@ -1,0 +1,14 @@
+name = "famio-worker"
+main = "src/index.ts"
+compatibility_date = "2025-03-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "famio"
+database_id = "TODO: replace-with-actual-d1-id-after-wrangler-d1-create"
+
+[vars]
+PURELYMAIL_API_KEY = "TODO: set-via-wrangler-secret"
+PURELYMAIL_ACCOUNT_TOKEN = "TODO: set-via-wrangler-secret"
+FAMIO_DOMAIN = "famio.org"
