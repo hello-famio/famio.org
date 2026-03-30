@@ -58,25 +58,24 @@ The Worker is now running at **http://localhost:8787**.
 
 ## Remote dev workflow (macOS 12)
 
-You need a Cloudflare account. Run once to authenticate and create the D1 database:
+You need a Cloudflare account. Log in once, then a single command does the rest:
 
 ```bash
-# Authenticate with Cloudflare (one-time)
+# Authenticate (one-time)
 bunx wrangler login
 
-# Create the database and copy the ID into wrangler.toml [[d1_databases]] database_id
-bunx wrangler d1 create famio
+# Create D1 database, update wrangler.toml, migrate, and seed — all at once
+bun run setup:remote
 
-# Apply schema and seed data to the remote database
-bun run db:setup:remote
-
-# Run the Worker (code executes in Cloudflare, served via localhost tunnel)
+# Start the Worker (code runs in Cloudflare, served via localhost tunnel)
 bun run dev:remote
 ```
 
+`setup:remote` is idempotent — safe to re-run if something fails partway through. It skips database creation if `wrangler.toml` already has a real `database_id`.
+
 The Worker is now running at **http://localhost:8787** (proxied through Cloudflare).
 
-> Note: `dev:remote` uses your real D1 database. Run `bun run db:seed:remote` once to load the dev tokens. Don't use the seed data in production — run `bun run db:reset:remote` to wipe it before going live.
+> Note: `dev:remote` uses your real D1 database. Don't use the seed data in production — run `bun run db:reset:remote` to wipe it before going live.
 
 ## Local dev URLs
 

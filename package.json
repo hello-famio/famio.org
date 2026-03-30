@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "dev:remote": "wrangler dev --remote",
+    "setup:remote": "bash scripts/setup-remote.sh",
     "deploy": "wrangler deploy",
     "test": "vitest run",
     "test:watch": "vitest",
