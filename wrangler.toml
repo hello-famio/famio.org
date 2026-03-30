@@ -3,12 +3,19 @@ main = "src/index.ts"
 compatibility_date = "2025-03-01"
 compatibility_flags = ["nodejs_compat"]
 
+# D1 database binding.
+# For local dev: wrangler creates a SQLite file in .wrangler/state/ automatically.
+# For production: run `wrangler d1 create famio` and replace the database_id below.
 [[d1_databases]]
 binding = "DB"
 database_name = "famio"
-database_id = "TODO: replace-with-actual-d1-id-after-wrangler-d1-create"
+database_id = "00000000-0000-0000-0000-000000000000"
 
+# Environment variables.
+# Set PURELYMAIL_API_KEY and PURELYMAIL_ACCOUNT_TOKEN as secrets in production:
+#   wrangler secret put PURELYMAIL_API_KEY
+#   wrangler secret put PURELYMAIL_ACCOUNT_TOKEN
+#
+# Local dev overrides live in .dev.vars (gitignored).
 [vars]
-PURELYMAIL_API_KEY = "TODO: set-via-wrangler-secret"
-PURELYMAIL_ACCOUNT_TOKEN = "TODO: set-via-wrangler-secret"
 FAMIO_DOMAIN = "famio.org"

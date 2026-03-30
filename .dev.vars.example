@@ -1,0 +1,8 @@
+# Copy this file to .dev.vars for local development.
+# .dev.vars is gitignored — never commit real credentials.
+#
+# These values are loaded by `wrangler dev` automatically.
+
+PURELYMAIL_API_KEY=stub
+PURELYMAIL_ACCOUNT_TOKEN=stub
+FAMIO_DOMAIN=famio.org

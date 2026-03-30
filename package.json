@@ -4,10 +4,23 @@
   "private": true,
   "scripts": {
     "dev": "wrangler dev",
+    "dev:remote": "wrangler dev --remote",
     "deploy": "wrangler deploy",
     "test": "vitest run",
     "test:watch": "vitest",
-    "cf-typegen": "wrangler types"
+    "cf-typegen": "wrangler types",
+
+    "db:migrate": "wrangler d1 execute famio --local --file=src/db/schema.sql",
+    "db:seed": "wrangler d1 execute famio --local --file=src/db/seed.sql",
+    "db:setup": "bun run db:migrate && bun run db:seed",
+    "db:reset": "rm -rf .wrangler/state && bun run db:setup",
+    "db:query": "wrangler d1 execute famio --local --command",
+    "db:dump": "wrangler d1 execute famio --local --command 'SELECT * FROM addresses; SELECT * FROM members; SELECT * FROM tokens;'",
+    "db:migrate:remote": "wrangler d1 execute famio --remote --file=src/db/schema.sql",
+    "db:seed:remote": "wrangler d1 execute famio --remote --file=src/db/seed.sql",
+    "db:setup:remote": "bun run db:migrate:remote && bun run db:seed:remote",
+    "db:dump:remote": "wrangler d1 execute famio --remote --command 'SELECT * FROM addresses; SELECT * FROM members; SELECT * FROM tokens;'",
+    "db:reset:remote": "wrangler d1 execute famio --remote --command 'DELETE FROM tokens; DELETE FROM members; DELETE FROM addresses;' && bun run db:setup:remote"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.8.0",
