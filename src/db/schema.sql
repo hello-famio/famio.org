@@ -17,11 +17,7 @@ CREATE TABLE IF NOT EXISTS members (
   confirmed INTEGER NOT NULL DEFAULT 0,
   confirmed_at INTEGER,
   added_at INTEGER NOT NULL,
-  UNIQUE(address_id, email),
-  CHECK (
-    (SELECT COUNT(*) FROM members m2
-     WHERE m2.address_id = address_id AND m2.confirmed = 1) < 6
-  )
+  UNIQUE(address_id, email)
 );
 
 CREATE TABLE IF NOT EXISTS tokens (
