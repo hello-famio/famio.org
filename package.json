@@ -7,10 +7,17 @@
     "dev:remote": "wrangler dev --remote",
     "setup:remote": "bash scripts/setup-remote.sh",
     "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env staging",
+    "dev:frontend": "bun scripts/dev-proxy.ts",
+    "logs:staging": "bunx wrangler tail --env staging",
+    "db:cleanup": "bunx wrangler d1 execute famio --remote --file=scripts/db-cleanup.sql",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:staging": "vitest run --config vitest.integration.config.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui",
     "cf-typegen": "wrangler types",
-
     "db:migrate": "wrangler d1 execute famio --local --file=src/db/schema.sql",
     "db:seed": "wrangler d1 execute famio --local --file=src/db/seed.sql",
     "db:setup": "bun run db:migrate && bun run db:seed",
@@ -26,6 +33,7 @@
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.8.0",
     "@cloudflare/workers-types": "^4.20250319.0",
+    "@playwright/test": "^1.58.2",
     "typescript": "^5.8.2",
     "vitest": "^3.1.1",
     "wrangler": "^4.9.0"
