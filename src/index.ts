@@ -11,13 +11,13 @@ import {
 } from "./services/email";
 import {
   type MailRoutingService,
+  purelyMailRoutingService,
   stubMailRoutingService,
 } from "./services/purelymail";
 
 export interface Env {
   DB: D1Database;
-  PURELYMAIL_API_KEY: string;
-  PURELYMAIL_ACCOUNT_TOKEN: string;
+  PURELYMAIL_API_KEY?: string;
   FAMIO_DOMAIN: string;
 }
 
@@ -132,7 +132,9 @@ export default {
     const ctx: AppContext = {
       env,
       email: stubEmailService(),
-      mail: stubMailRoutingService(),
+      mail: env.PURELYMAIL_API_KEY
+        ? purelyMailRoutingService(env.PURELYMAIL_API_KEY)
+        : stubMailRoutingService(),
       domain: env.FAMIO_DOMAIN ?? "famio.org",
       baseUrl: url.origin,
     };

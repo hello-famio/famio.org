@@ -12,9 +12,9 @@ database_name = "famio"
 database_id = "1adaa7b9-8bfc-4669-b326-447a16dfe8ac"
 
 # Environment variables.
-# Set PURELYMAIL_API_KEY and PURELYMAIL_ACCOUNT_TOKEN as secrets in production:
+# Set the Purelymail API token as a secret in production:
 #   wrangler secret put PURELYMAIL_API_KEY
-#   wrangler secret put PURELYMAIL_ACCOUNT_TOKEN
+# Without it the Worker falls back to a stub that logs what it would send.
 #
 # Local dev overrides live in .dev.vars (gitignored).
 [vars]
