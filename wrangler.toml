@@ -9,7 +9,7 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "famio"
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "1adaa7b9-8bfc-4669-b326-447a16dfe8ac"
 
 # Environment variables.
 # Set PURELYMAIL_API_KEY and PURELYMAIL_ACCOUNT_TOKEN as secrets in production:
@@ -18,4 +18,17 @@ database_id = "00000000-0000-0000-0000-000000000000"
 #
 # Local dev overrides live in .dev.vars (gitignored).
 [vars]
+FAMIO_DOMAIN = "famio.org"
+
+# Staging environment — used for deploy-based dev on macOS 12 (wrangler dev --remote
+# requires macOS 13.5+ due to miniflare's local proxy requirement).
+# Deploy with: bun run deploy:staging
+# Test at: https://famio-worker-staging.bevn.workers.dev
+[env.staging]
+name = "famio-worker-staging"
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "famio-staging"
+database_id = "4aa5cf2c-0789-412a-a7be-830bdb7cd773"
+[env.staging.vars]
 FAMIO_DOMAIN = "famio.org"

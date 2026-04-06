@@ -36,7 +36,7 @@ famio.org/
 - **macOS 13.5+ or Linux** for `wrangler dev` local mode (Workers runtime requirement)
 - A Cloudflare account with Workers and D1 enabled
 
-> **macOS 12 users:** The local Workers runtime requires macOS 13.5+. Use `bun run dev:remote` instead — it runs your code in Cloudflare's infrastructure while serving locally. You'll need a Cloudflare account and a D1 database created first (see [Remote dev workflow](#remote-dev-workflow-macos-12)).
+> **macOS 12 users:** The local Workers runtime requires macOS 13.5+, and `wrangler dev --remote` also requires it (wrangler 4.x runs a local miniflare proxy regardless of mode). Use `bun run deploy:staging` instead — it deploys your code to a real Workers URL where you can test it. See [Staging deploy workflow](#staging-deploy-workflow-macos-12).
 
 ## Quick start (macOS 13.5+ / Linux)
 
@@ -56,7 +56,11 @@ bun run dev
 
 The Worker is now running at **http://localhost:8787**.
 
-## Remote dev workflow (macOS 12)
+## Staging deploy workflow (macOS 12)
+
+`wrangler dev --remote` cannot run on macOS 12.6 — even in remote mode, wrangler 4.x
+starts a local miniflare proxy that requires macOS 13.5+. Use the staging deploy
+workflow instead: deploy your code to a real Workers URL, then test against that.
 
 **First time:**
 
@@ -67,21 +71,31 @@ bunx wrangler login
 # Create D1 database, update wrangler.toml, migrate, and seed — all at once
 bun run setup:remote
 
-# Start the Worker
-bun run dev:remote
+# Deploy to staging
+bun run deploy:staging
 ```
 
-**Already set up (subsequent sessions):**
+Wrangler will print a URL like:
+```
+https://famio-worker-staging.bevn.workers.dev
+```
+
+**Subsequent deploys:**
 
 ```bash
-bun run dev:remote
+bun run deploy:staging
 ```
 
-`setup:remote` is idempotent — safe to re-run if something fails partway through. It skips database creation if `wrangler.toml` already has a real `database_id`.
+The staging Worker uses the same D1 database as production (`famio` database). Test
+your changes at the printed workers.dev URL. Wipe seed data before going live:
 
-The Worker runs at **http://localhost:8787** (proxied through Cloudflare).
+```bash
+bun run db:reset:remote
+```
 
-> Note: `dev:remote` uses your real D1 database. Don't use the seed data in production — run `bun run db:reset:remote` to wipe it before going live.
+**First-time Cloudflare account setup:** If you get a "workers.dev subdomain" error,
+visit your Cloudflare Workers dashboard to complete onboarding — this registers your
+`*.workers.dev` subdomain and is required before any deploy can succeed.
 
 ## Local dev URLs
 
