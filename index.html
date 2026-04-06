@@ -305,13 +305,17 @@
             border-color: #4ecdc4;
         }
 
+        .address-row .field-input:focus + .address-suffix {
+            border-color: #4ecdc4;
+        }
+
         .field-input::placeholder {
             color: #a0aec0;
         }
 
         .address-row {
             display: flex;
-            align-items: center;
+            align-items: stretch;
             gap: 0;
         }
 
@@ -322,7 +326,9 @@
         }
 
         .address-suffix {
-            padding: 14px 18px 14px 12px;
+            display: flex;
+            align-items: center;
+            padding: 0 18px 0 12px;
             font-size: 1rem;
             font-weight: 600;
             color: #4ecdc4;
