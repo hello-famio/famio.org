@@ -3,9 +3,18 @@ main = "src/index.ts"
 compatibility_date = "2025-03-01"
 compatibility_flags = ["nodejs_compat"]
 
+workers_dev = true
+
+# Worker routes — applied automatically on `bun run deploy`.
+# Routes only the API paths so GitHub Pages continues serving index.html at /.
+routes = [
+  { pattern = "famio.org/signup",       zone_name = "famio.org" },
+  { pattern = "famio.org/confirm*",     zone_name = "famio.org" },
+  { pattern = "famio.org/manage*",      zone_name = "famio.org" },
+  { pattern = "famio.org/unsubscribe*", zone_name = "famio.org" },
+]
+
 # D1 database binding.
-# For local dev: wrangler creates a SQLite file in .wrangler/state/ automatically.
-# For production: run `wrangler d1 create famio` and replace the database_id below.
 [[d1_databases]]
 binding = "DB"
 database_name = "famio"
