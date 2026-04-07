@@ -315,7 +315,7 @@ async function handleSignup(request: Request, ctx: AppContext): Promise<Response
     addressName: name,
     domain: ctx.domain,
     members: [],
-  });
+  }).catch((err) => console.error("[PURELYMAIL] createRoute failed:", err));
 
   return json({ ok: true, address: `${name}@${ctx.domain}` }, 201);
 }
@@ -352,7 +352,7 @@ async function handleConfirm(url: URL, ctx: AppContext): Promise<Response> {
     addressName: address.name,
     domain: ctx.domain,
     email: memberEmail,
-  });
+  }).catch((err) => console.error("[PURELYMAIL] addMemberToRoute failed:", err));
 
   return html(
     confirmPage({
@@ -516,7 +516,7 @@ async function handleRemoveMember(
     addressName: address.name,
     domain: ctx.domain,
     email,
-  });
+  }).catch((err) => console.error("[PURELYMAIL] removeMemberFromRoute failed:", err));
 
   await ctx.email.notifyOwnerMemberRemoved({
     to: address.owner_email,
@@ -618,7 +618,7 @@ async function handleUnsubscribePost(url: URL, ctx: AppContext): Promise<Respons
     addressName: address.name,
     domain: ctx.domain,
     email: memberEmail,
-  });
+  }).catch((err) => console.error("[PURELYMAIL] removeMemberFromRoute failed:", err));
 
   await ctx.email.notifyOwnerMemberUnsubscribed({
     to: address.owner_email,

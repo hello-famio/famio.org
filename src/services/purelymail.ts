@@ -52,10 +52,12 @@ async function pmCall(apiKey: string, path: string, body: unknown): Promise<unkn
     body: JSON.stringify(body),
   });
 
-  const data = await res.json() as { result?: unknown; code?: string; message?: string };
+  const data = await res.json() as { result?: unknown; type?: string; code?: string; message?: string };
 
-  if (!res.ok || data.code) {
-    throw new Error(`Purelymail API error: ${data.message ?? `HTTP ${res.status}`}`);
+  console.log(`[PURELYMAIL] ${path} → HTTP ${res.status} body=${JSON.stringify(data)}`);
+
+  if (!res.ok || data.type === "error" || data.code) {
+    throw new Error(`Purelymail API error on ${path}: ${data.message ?? data.code ?? `HTTP ${res.status}`}`);
   }
 
   return data.result;
