@@ -342,6 +342,52 @@ describe("POST /unsubscribe", () => {
   });
 });
 
+// ─── DELETE /manage/address ──────────────────────────────────────────────────
+
+describe("DELETE /manage/address", () => {
+  // Each test creates its own address so deletion doesn't affect other suites.
+
+  async function createAddress(): Promise<{ token: string; name: string }> {
+    const name = uid("del");
+    const r = await api("POST", "/signup", {
+      body: { name, owner_email: `${name}@example.com` },
+    });
+    expect(r.status).toBe(201);
+    // Fetch the magic token from D1
+    const row = execSync(
+      `bunx wrangler d1 execute famio-staging --remote --command "SELECT token FROM tokens WHERE address_id = (SELECT id FROM addresses WHERE name = '${name}') AND type = 'magic_link' LIMIT 1" --json`,
+      { stdio: "pipe" }
+    ).toString();
+    const token = JSON.parse(row)[0].results[0].token as string;
+    return { token, name };
+  }
+
+  it("200 deletes the address and cascades to members/tokens", async () => {
+    const { token, name } = await createAddress();
+    const r = await api("DELETE", "/manage/address", { token });
+    expect(r.status).toBe(200);
+    const body = await r.json() as { ok: boolean };
+    expect(body.ok).toBe(true);
+
+    // Verify address is gone
+    const check = await api("GET", "/manage", { token });
+    expect(check.status).toBe(401);
+  });
+
+  it("401 bad token", async () => {
+    const r = await api("DELETE", "/manage/address", { token: "badtoken" });
+    expect(r.status).toBe(401);
+  });
+
+  it("401 token already used after deletion", async () => {
+    const { token } = await createAddress();
+    await api("DELETE", "/manage/address", { token });
+    // Second attempt — token was deleted along with the address
+    const r = await api("DELETE", "/manage/address", { token });
+    expect(r.status).toBe(401);
+  });
+});
+
 // ─── 404 ─────────────────────────────────────────────────────────────────────
 
 describe("404 unknown routes", () => {

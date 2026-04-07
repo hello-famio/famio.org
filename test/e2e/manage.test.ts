@@ -113,6 +113,23 @@ test("resend link button shows success flash", async ({ page }) => {
   await expect(page.locator("#flash")).toContainText("sent");
 });
 
+// ─── Delete address ───────────────────────────────────────────────────────────
+
+test("delete address button opens confirm dialog", async ({ page }) => {
+  await page.locator("#delete-address-btn").click();
+  await expect(page.locator("#delete-dialog")).toBeVisible();
+  await expect(page.locator("#delete-dialog")).toContainText("This cannot be undone");
+});
+
+test("cancel closes the dialog without deleting", async ({ page }) => {
+  await page.locator("#delete-address-btn").click();
+  await expect(page.locator("#delete-dialog")).toBeVisible();
+  await page.locator("#delete-cancel-btn").click();
+  await expect(page.locator("#delete-dialog")).not.toBeVisible();
+  // Address still exists
+  await expect(page.locator("h1")).toContainText("testfamily@famio.org");
+});
+
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
 test("bad token shows 401 error page", async ({ page }) => {
