@@ -470,6 +470,30 @@ export function managePage(p: ManageParams): string {
       </div>
     </div>
 
+    <div class="card" style="border:1px solid #fed7d7">
+      <p style="font-size:0.95rem;font-weight:600;color:#2d3748;margin-bottom:4px">Delete this address</p>
+      <p style="font-size:0.85rem;color:#718096;margin-bottom:16px">
+        Permanently removes ${address} and stops all email forwarding.
+      </p>
+      <button class="btn btn-sm btn-danger" id="delete-address-btn">Delete address</button>
+    </div>
+
+    <!-- Delete address confirm dialog -->
+    <dialog id="delete-dialog" style="border:none;border-radius:16px;padding:32px;max-width:420px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.15)">
+      <h2 style="font-size:1.2rem;font-weight:700;color:#2d3748;margin-bottom:8px">Delete ${address}?</h2>
+      <p style="color:#4a5568;font-size:0.95rem;margin-bottom:8px">This will permanently:</p>
+      <ul style="color:#4a5568;font-size:0.9rem;padding-left:20px;margin-bottom:20px;line-height:1.8">
+        <li>Stop all email forwarding to your family</li>
+        <li>Remove all ${totalCount} member${totalCount === 1 ? "" : "s"}</li>
+        <li>Delete all manage links</li>
+      </ul>
+      <p style="font-size:0.85rem;color:#e53e3e;font-weight:600;margin-bottom:20px">This cannot be undone.</p>
+      <div style="display:flex;gap:12px;justify-content:flex-end">
+        <button class="btn btn-ghost btn-sm" id="delete-cancel-btn">Cancel</button>
+        <button class="btn btn-sm btn-danger" id="delete-confirm-btn">Yes, delete forever</button>
+      </div>
+    </dialog>
+
     <script>
     (function() {
       var token = document.body.dataset.token;
@@ -549,6 +573,39 @@ export function managePage(p: ManageParams): string {
           }
         });
       }
+
+      // Delete address
+      var deleteDialog = document.getElementById('delete-dialog');
+      document.getElementById('delete-address-btn').addEventListener('click', function() {
+        deleteDialog.showModal();
+      });
+      document.getElementById('delete-cancel-btn').addEventListener('click', function() {
+        deleteDialog.close();
+      });
+      deleteDialog.addEventListener('click', function(e) {
+        if (e.target === deleteDialog) deleteDialog.close();
+      });
+      document.getElementById('delete-confirm-btn').addEventListener('click', async function() {
+        this.disabled = true;
+        this.textContent = 'Deleting…';
+        try {
+          var res = await apiFetch('DELETE', '/manage/address');
+          if (res.ok) {
+            window.location.href = '/';
+          } else {
+            var data = await res.json().catch(function() { return {}; });
+            deleteDialog.close();
+            showFlash('err', data.error || 'Could not delete address. Please try again.');
+            this.disabled = false;
+            this.textContent = 'Yes, delete forever';
+          }
+        } catch(e) {
+          deleteDialog.close();
+          showFlash('err', 'Network error. Please try again.');
+          this.disabled = false;
+          this.textContent = 'Yes, delete forever';
+        }
+      });
 
       // Resend magic link
       document.getElementById('resend-link-btn').addEventListener('click', async function() {

@@ -165,6 +165,9 @@ export default {
       if (request.method === "POST" && url.pathname === "/manage/magic-link")
         return handleResendMagicLink(request, url, ctx);
 
+      if (request.method === "DELETE" && url.pathname === "/manage/address")
+        return handleDeleteAddress(request, url, ctx);
+
       if (request.method === "GET" && url.pathname === "/unsubscribe")
         return handleUnsubscribeGet(url, ctx);
 
@@ -631,4 +634,39 @@ async function handleUnsubscribePost(url: URL, ctx: AppContext): Promise<Respons
       memberEmail,
     })
   );
+}
+
+async function handleDeleteAddress(
+  request: Request,
+  url: URL,
+  ctx: AppContext
+): Promise<Response> {
+  const token = tokenFromRequest(request, url) ?? "";
+
+  const result = await validateToken(ctx.env.DB, token, "magic_link");
+  if (!result.ok) return json({ error: result.error }, 401);
+
+  const { address } = result;
+
+  // Delete Purelymail routing rule for all confirmed members
+  const confirmed = await ctx.env.DB.prepare(
+    "SELECT email FROM members WHERE address_id = ? AND confirmed = 1"
+  )
+    .bind(address.id)
+    .all<{ email: string }>();
+
+  for (const member of confirmed.results ?? []) {
+    await ctx.mail.removeMemberFromRoute({
+      addressName: address.name,
+      domain: ctx.domain,
+      email: member.email,
+    });
+  }
+
+  // Cascade delete
+  await ctx.env.DB.prepare("DELETE FROM tokens WHERE address_id = ?").bind(address.id).run();
+  await ctx.env.DB.prepare("DELETE FROM members WHERE address_id = ?").bind(address.id).run();
+  await ctx.env.DB.prepare("DELETE FROM addresses WHERE id = ?").bind(address.id).run();
+
+  return json({ ok: true });
 }
