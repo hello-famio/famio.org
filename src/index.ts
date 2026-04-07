@@ -7,6 +7,7 @@ import {
 } from "./templates";
 import {
   type EmailService,
+  resendEmailService,
   stubEmailService,
 } from "./services/email";
 import {
@@ -17,6 +18,7 @@ import {
 
 export interface Env {
   DB: D1Database;
+  RESEND_API_KEY?: string;
   PURELYMAIL_API_KEY?: string;
   FAMIO_DOMAIN: string;
 }
@@ -131,7 +133,9 @@ export default {
 
     const ctx: AppContext = {
       env,
-      email: stubEmailService(),
+      email: env.RESEND_API_KEY
+        ? resendEmailService(env.RESEND_API_KEY)
+        : stubEmailService(),
       mail: env.PURELYMAIL_API_KEY
         ? purelyMailRoutingService(env.PURELYMAIL_API_KEY)
         : stubMailRoutingService(),
