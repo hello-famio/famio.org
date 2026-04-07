@@ -5,21 +5,6 @@ compatibility_flags = ["nodejs_compat"]
 
 workers_dev = true
 
-[observability]
-enabled = false
-head_sampling_rate = 1
-
-[observability.logs]
-enabled = true
-head_sampling_rate = 1
-persist = true
-invocation_logs = true
-
-[observability.traces]
-enabled = false
-persist = true
-head_sampling_rate = 1
-
 # Worker routes — applied automatically on `bun run deploy`.
 # Routes only the API paths so GitHub Pages continues serving index.html at /.
 routes = [
@@ -43,6 +28,21 @@ database_id = "1adaa7b9-8bfc-4669-b326-447a16dfe8ac"
 # Local dev overrides live in .dev.vars (gitignored).
 [vars]
 FAMIO_DOMAIN = "famio.org"
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1
 
 # Staging environment — used for deploy-based dev on macOS 12 (wrangler dev --remote
 # requires macOS 13.5+ due to miniflare's local proxy requirement).

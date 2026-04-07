@@ -54,8 +54,6 @@ async function pmCall(apiKey: string, path: string, body: unknown): Promise<unkn
 
   const data = await res.json() as { result?: unknown; type?: string; code?: string; message?: string };
 
-  console.log(`[PURELYMAIL] ${path} → HTTP ${res.status} body=${JSON.stringify(data)}`);
-
   if (!res.ok || data.type === "error" || data.code) {
     throw new Error(`Purelymail API error on ${path}: ${data.message ?? data.code ?? `HTTP ${res.status}`}`);
   }
