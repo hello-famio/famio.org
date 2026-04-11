@@ -21,7 +21,9 @@ write_files:
   - path: /etc/sudoers.d/famio-deploy
     permissions: "0440"
     content: |
-      ${deploy_user} ALL=(ALL) NOPASSWD: /usr/bin/docker, /bin/systemctl restart famio-smtp, /bin/systemctl start famio-smtp
+      ${deploy_user} ALL=(ALL) NOPASSWD: /usr/bin/docker
+      ${deploy_user} ALL=(ALL) NOPASSWD: /bin/systemctl restart famio-smtp
+      ${deploy_user} ALL=(ALL) NOPASSWD: /bin/systemctl start famio-smtp
 
   # SMTP proxy env — no TLS here, stunnel handles TLS on the host
   - path: /etc/famio-smtp/.env
