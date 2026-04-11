@@ -12,6 +12,7 @@
     "logs:staging": "bunx wrangler tail --env staging",
     "db:cleanup": "bunx wrangler d1 execute famio --remote --file=scripts/db-cleanup.sql",
     "test": "vitest run",
+    "test:unit": "vitest run --config vitest.unit.config.ts",
     "test:watch": "vitest",
     "test:staging": "vitest run --config vitest.integration.config.ts",
     "test:e2e": "playwright test",
