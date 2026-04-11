@@ -149,6 +149,34 @@ describe("POST /signup", () => {
     expect(body.error).toMatch(/already taken/);
   });
 
+  it("owner is auto-confirmed at signup", async () => {
+    const name = uid("aconf");
+    const ownerEmail = `owner-${name}@example.com`;
+    const r = await api("POST", "/signup", { body: { name, owner_email: ownerEmail } });
+    expect(r.status).toBe(201);
+
+    const row = execSync(
+      `bunx wrangler d1 execute famio-staging --remote --command "SELECT confirmed FROM members WHERE address_id = (SELECT id FROM addresses WHERE name = '${name}') AND email = '${ownerEmail}'" --json`,
+      { stdio: "pipe" }
+    ).toString();
+    const confirmed = JSON.parse(row)[0].results[0].confirmed as number;
+    expect(confirmed).toBe(1);
+  });
+
+  it("no confirm token is created for the owner", async () => {
+    const name = uid("notok");
+    const ownerEmail = `owner-${name}@example.com`;
+    const r = await api("POST", "/signup", { body: { name, owner_email: ownerEmail } });
+    expect(r.status).toBe(201);
+
+    const row = execSync(
+      `bunx wrangler d1 execute famio-staging --remote --command "SELECT COUNT(*) as n FROM tokens WHERE address_id = (SELECT id FROM addresses WHERE name = '${name}') AND type = 'confirm' AND member_email = '${ownerEmail}'" --json`,
+      { stdio: "pipe" }
+    ).toString();
+    const count = JSON.parse(row)[0].results[0].n as number;
+    expect(count).toBe(0);
+  });
+
   it("409 owner already has an address", async () => {
     const ownerEmail = `twiceowner-${RUN}@example.com`;
     await api("POST", "/signup", { body: { name: uid("fam"), owner_email: ownerEmail } });
