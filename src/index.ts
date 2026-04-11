@@ -20,6 +20,7 @@ export interface Env {
   DB: D1Database;
   RESEND_API_KEY?: string;
   PURELYMAIL_API_KEY?: string;
+  SMTP_RELAY_SECRET?: string;
   FAMIO_DOMAIN: string;
 }
 
@@ -67,6 +68,55 @@ function newToken(): string {
   return crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
 }
 
+// ─── Password utilities (PBKDF2 via SubtleCrypto — no external deps) ─────────
+
+async function hashPassword(password: string): Promise<string> {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iterations = 100_000;
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(password),
+    "PBKDF2",
+    false,
+    ["deriveBits"]
+  );
+  const derived = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", hash: "SHA-256", salt, iterations },
+    keyMaterial,
+    256
+  );
+  const saltB64 = btoa(String.fromCharCode(...salt));
+  const hashB64 = btoa(String.fromCharCode(...new Uint8Array(derived)));
+  return `pbkdf2:sha256:${iterations}:${saltB64}:${hashB64}`;
+}
+
+async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  const parts = hash.split(":");
+  if (parts.length !== 5 || parts[0] !== "pbkdf2" || parts[1] !== "sha256") return false;
+  const iterations = parseInt(parts[2]!);
+  const salt = Uint8Array.from(atob(parts[3]!), (c) => c.charCodeAt(0));
+  const expected = Uint8Array.from(atob(parts[4]!), (c) => c.charCodeAt(0));
+
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(password),
+    "PBKDF2",
+    false,
+    ["deriveBits"]
+  );
+  const derived = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", hash: "SHA-256", salt, iterations },
+    keyMaterial,
+    256
+  );
+  const derived8 = new Uint8Array(derived);
+  if (derived8.length !== expected.length) return false;
+  // Constant-time comparison to prevent timing attacks
+  let diff = 0;
+  for (let i = 0; i < derived8.length; i++) diff |= derived8[i]! ^ expected[i]!;
+  return diff === 0;
+}
+
 // ─── D1 types ─────────────────────────────────────────────────────────────────
 
 interface AddressRow {
@@ -75,6 +125,7 @@ interface AddressRow {
   owner_email: string;
   tier: string;
   active: number;
+  smtp_password_hash: string | null;
 }
 
 interface MemberRow {
@@ -165,6 +216,9 @@ export default {
       if (request.method === "POST" && url.pathname === "/manage/magic-link")
         return handleResendMagicLink(request, url, ctx);
 
+      if (request.method === "POST" && url.pathname === "/manage/smtp-password")
+        return handleRegenerateSmtpPassword(request, url, ctx);
+
       if (request.method === "DELETE" && url.pathname === "/manage/address")
         return handleDeleteAddress(request, url, ctx);
 
@@ -173,6 +227,9 @@ export default {
 
       if (request.method === "POST" && url.pathname === "/unsubscribe")
         return handleUnsubscribePost(url, ctx);
+
+      if (request.method === "POST" && url.pathname === "/internal/smtp-send")
+        return handleSmtpSend(request, ctx);
 
       return html(
         errorPage({
@@ -262,10 +319,14 @@ async function handleSignup(request: Request, ctx: AppContext): Promise<Response
   const now = Math.floor(Date.now() / 1000);
   const addressId = newId();
 
+  // Generate SMTP credentials
+  const smtpPassword = newToken().slice(0, 32);
+  const smtpHash = await hashPassword(smtpPassword);
+
   await ctx.env.DB.prepare(
-    "INSERT INTO addresses (id, name, owner_email, tier, created_at, active) VALUES (?, ?, ?, 'free', ?, 1)"
+    "INSERT INTO addresses (id, name, owner_email, tier, created_at, active, smtp_password_hash) VALUES (?, ?, ?, 'free', ?, 1, ?)"
   )
-    .bind(addressId, name, ownerEmail, now)
+    .bind(addressId, name, ownerEmail, now, smtpHash)
     .run();
 
   for (const email of allEmails) {
@@ -276,7 +337,7 @@ async function handleSignup(request: Request, ctx: AppContext): Promise<Response
       .run();
   }
 
-  // Magic link for owner
+  // Magic link for owner (includes SMTP password — shown once)
   const magicToken = newToken();
   await ctx.env.DB.prepare(
     "INSERT INTO tokens (token, address_id, type, expires_at, used) VALUES (?, ?, 'magic_link', ?, 0)"
@@ -290,6 +351,7 @@ async function handleSignup(request: Request, ctx: AppContext): Promise<Response
     domain: ctx.domain,
     token: magicToken,
     baseUrl: ctx.baseUrl,
+    smtpPassword,
   });
 
   // Confirmation tokens for all members
@@ -317,7 +379,7 @@ async function handleSignup(request: Request, ctx: AppContext): Promise<Response
     members: [],
   }).catch((err) => console.error("[PURELYMAIL] createRoute failed:", err));
 
-  return json({ ok: true, address: `${name}@${ctx.domain}` }, 201);
+  return json({ ok: true, address: `${name}@${ctx.domain}`, smtp_password: smtpPassword }, 201);
 }
 
 async function handleConfirm(url: URL, ctx: AppContext): Promise<Response> {
@@ -403,6 +465,7 @@ async function handleManageGet(
         confirmed: m.confirmed === 1,
       })),
       token,
+      smtpUsername: `${address.name}@${ctx.domain}`,
     })
   );
 }
@@ -554,9 +617,33 @@ async function handleResendMagicLink(
     domain: ctx.domain,
     token: newMagicToken,
     baseUrl: ctx.baseUrl,
+    // No smtpPassword on resend — they already have it from signup email
   });
 
   return json({ ok: true });
+}
+
+async function handleRegenerateSmtpPassword(
+  request: Request,
+  url: URL,
+  ctx: AppContext
+): Promise<Response> {
+  const token = tokenFromRequest(request, url) ?? "";
+
+  const result = await validateToken(ctx.env.DB, token, "magic_link");
+  if (!result.ok) return json({ error: result.error }, 401);
+
+  const { address } = result;
+  const newPassword = newToken().slice(0, 32);
+  const newHash = await hashPassword(newPassword);
+
+  await ctx.env.DB.prepare(
+    "UPDATE addresses SET smtp_password_hash = ? WHERE id = ?"
+  )
+    .bind(newHash, address.id)
+    .run();
+
+  return json({ ok: true, smtp_password: newPassword });
 }
 
 async function handleUnsubscribeGet(url: URL, ctx: AppContext): Promise<Response> {
@@ -648,7 +735,6 @@ async function handleDeleteAddress(
 
   const { address } = result;
 
-  // Delete Purelymail routing rule for all confirmed members
   const confirmed = await ctx.env.DB.prepare(
     "SELECT email FROM members WHERE address_id = ? AND confirmed = 1"
   )
@@ -663,10 +749,67 @@ async function handleDeleteAddress(
     });
   }
 
-  // Cascade delete
   await ctx.env.DB.prepare("DELETE FROM tokens WHERE address_id = ?").bind(address.id).run();
   await ctx.env.DB.prepare("DELETE FROM members WHERE address_id = ?").bind(address.id).run();
   await ctx.env.DB.prepare("DELETE FROM addresses WHERE id = ?").bind(address.id).run();
+
+  return json({ ok: true });
+}
+
+async function handleSmtpSend(request: Request, ctx: AppContext): Promise<Response> {
+  // Verify the shared secret so only our GCP proxy can call this endpoint.
+  const secret = request.headers.get("X-Relay-Secret");
+  if (!secret || !ctx.env.SMTP_RELAY_SECRET || secret !== ctx.env.SMTP_RELAY_SECRET) {
+    return json({ error: "Forbidden." }, 403);
+  }
+
+  let body: {
+    username?: string;
+    password?: string;
+    raw_message_b64?: string;
+    envelope_from?: string;
+    envelope_to?: string[];
+  };
+  try {
+    body = await request.json();
+  } catch {
+    return json({ error: "Invalid request body." }, 400);
+  }
+
+  const { username, password, raw_message_b64, envelope_from, envelope_to } = body;
+  if (!username || !password || !raw_message_b64 || !envelope_to?.length) {
+    return json({ error: "Missing required fields." }, 400);
+  }
+
+  // username is the full address e.g. "smiths@famio.org" — extract name part
+  const name = username.split("@")[0]!.toLowerCase();
+
+  const address = await ctx.env.DB.prepare(
+    "SELECT * FROM addresses WHERE name = ? AND active = 1"
+  )
+    .bind(name)
+    .first<AddressRow>();
+
+  if (!address?.smtp_password_hash) {
+    return json({ error: "Invalid credentials." }, 401);
+  }
+
+  const valid = await verifyPassword(password, address.smtp_password_hash);
+  if (!valid) {
+    return json({ error: "Invalid credentials." }, 401);
+  }
+
+  // Decode base64 → binary string → pass to postal-mime via email service
+  const rawMessage = atob(raw_message_b64);
+
+  await ctx.email.sendOutboundWithFooter({
+    rawMessage,
+    envelopeFrom: envelope_from ?? username,
+    envelopeTo: envelope_to,
+    addressName: address.name,
+    domain: ctx.domain,
+    tier: address.tier,
+  });
 
   return json({ ok: true });
 }

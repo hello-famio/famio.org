@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  worker-tests:
+    name: Worker unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install
+      - run: bun test
+
+  proxy-tests:
+    name: SMTP proxy tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Install proxy deps
+        working-directory: smtp
+        run: bun install
+      - name: Run proxy tests
+        working-directory: smtp
+        run: bun run test
+
+  terraform-plan:
+    name: Terraform plan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7"
+      - name: Terraform init
+        working-directory: infra
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+        run: terraform init
+      - name: Terraform plan
+        working-directory: infra
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+        run: |
+          terraform plan \
+            -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
+            -var="smtp_relay_secret=dummy-for-plan" \
+            -var="ghcr_image=ghcr.io/${{ github.repository_owner }}/famio-smtp:latest"

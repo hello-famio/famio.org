@@ -1,0 +1,30 @@
+Date: Fri, 11 Apr 2026 10:00:00 +0000
+From: sender@example.com
+To: smiths@famio.org
+Subject: Hello family (with attachment)
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="bound_mix_001"
+
+--bound_mix_001
+Content-Type: multipart/alternative; boundary="bound_alt_001"
+
+--bound_alt_001
+Content-Type: text/plain; charset=utf-8
+
+Hello family, see the attached file.
+
+--bound_alt_001
+Content-Type: text/html; charset=utf-8
+
+<html><body><p>Hello family, see the <strong>attached</strong> file.</p></body></html>
+
+--bound_alt_001--
+
+--bound_mix_001
+Content-Type: text/plain; name="note.txt"
+Content-Disposition: attachment; filename="note.txt"
+Content-Transfer-Encoding: base64
+
+SGVsbG8gV29ybGQ=
+
+--bound_mix_001--

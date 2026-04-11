@@ -372,6 +372,7 @@ export interface ManageParams {
   ownerEmail: string;
   members: ManageMember[];
   token: string;
+  smtpUsername: string;
   error?: string;
   success?: string;
 }
@@ -467,6 +468,39 @@ export function managePage(p: ManageParams): string {
           <p class="magic-link-copy">We'll send it to ${escHtml(p.ownerEmail)}</p>
         </div>
         <button class="btn btn-ghost btn-sm" id="resend-link-btn">Send link</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Send from your family address</div>
+      <p style="font-size:0.85rem;color:#718096;margin-bottom:16px">
+        Configure Gmail or Outlook to send as <strong>${escHtml(p.smtpUsername)}</strong>.
+        Emails sent this way will include a Famio footer automatically.
+      </p>
+      <table style="width:100%;border-collapse:collapse;font-size:0.875rem">
+        <tr>
+          <td style="color:#a0aec0;padding:5px 16px 5px 0;white-space:nowrap;vertical-align:top">SMTP host</td>
+          <td style="font-family:monospace;color:#2d3748;padding:5px 0">smtp.famio.org</td>
+        </tr>
+        <tr>
+          <td style="color:#a0aec0;padding:5px 16px 5px 0;white-space:nowrap">Port</td>
+          <td style="font-family:monospace;color:#2d3748;padding:5px 0">587</td>
+        </tr>
+        <tr>
+          <td style="color:#a0aec0;padding:5px 16px 5px 0;white-space:nowrap">Username</td>
+          <td style="font-family:monospace;color:#2d3748;padding:5px 0">${escHtml(p.smtpUsername)}</td>
+        </tr>
+        <tr>
+          <td style="color:#a0aec0;padding:5px 16px 5px 0;white-space:nowrap;vertical-align:middle">Password</td>
+          <td style="padding:5px 0">
+            <span id="smtp-pw-display" style="font-family:monospace;color:#2d3748">••••••••</span>
+            <button class="btn btn-ghost btn-sm" id="smtp-regen-btn" style="margin-left:12px">Regenerate</button>
+          </td>
+        </tr>
+      </table>
+      <div id="smtp-pw-new" style="display:none;margin-top:12px;padding:10px 14px;background:#f0fff4;border:1.5px solid #9ae6b4;border-radius:8px;font-size:0.85rem;color:#276749">
+        New password: <code id="smtp-pw-value" style="font-family:monospace;font-weight:700"></code>
+        <span style="color:#68d391;margin-left:8px">— save this now, it won't be shown again.</span>
       </div>
     </div>
 
@@ -605,6 +639,28 @@ export function managePage(p: ManageParams): string {
           this.disabled = false;
           this.textContent = 'Yes, delete forever';
         }
+      });
+
+      // Regenerate SMTP password
+      document.getElementById('smtp-regen-btn').addEventListener('click', async function() {
+        if (!confirm('Regenerate SMTP password? Your current password will stop working immediately.')) return;
+        this.disabled = true;
+        this.textContent = 'Regenerating…';
+        try {
+          var res = await apiFetch('POST', '/manage/smtp-password');
+          if (res.ok) {
+            var data = await res.json();
+            document.getElementById('smtp-pw-value').textContent = data.smtp_password;
+            document.getElementById('smtp-pw-new').style.display = '';
+            document.getElementById('smtp-pw-display').textContent = data.smtp_password;
+          } else {
+            showFlash('err', 'Could not regenerate password. Please try again.');
+          }
+        } catch(e) {
+          showFlash('err', 'Network error. Please try again.');
+        }
+        this.disabled = false;
+        this.textContent = 'Regenerate';
       });
 
       // Resend magic link

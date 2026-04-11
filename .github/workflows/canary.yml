@@ -1,0 +1,28 @@
+name: SMTP canary
+
+on:
+  schedule:
+    - cron: "0 * * * *" # every hour
+  workflow_dispatch: # allow manual trigger from Actions UI
+
+jobs:
+  smtp-canary:
+    name: SMTP relay health check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Install proxy deps
+        working-directory: smtp
+        run: bun install
+      - name: Send canary email
+        working-directory: smtp
+        run: |
+          bun scripts/canary.ts \
+            --host smtp.famio.org \
+            --port 587 \
+            --user "${{ secrets.SMTP_CANARY_USER }}" \
+            --pass "${{ secrets.SMTP_CANARY_PASS }}" \
+            --to "${{ secrets.SMTP_CANARY_RECIPIENT }}"
+        # Exits 1 on any SMTP failure — GitHub marks the run as failed
+        # and sends an email alert to the repo owner.

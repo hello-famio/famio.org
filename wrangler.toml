@@ -8,10 +8,11 @@ workers_dev = true
 # Worker routes — applied automatically on `bun run deploy`.
 # Routes only the API paths so GitHub Pages continues serving index.html at /.
 routes = [
-  { pattern = "famio.org/signup",       zone_name = "famio.org" },
-  { pattern = "famio.org/confirm*",     zone_name = "famio.org" },
-  { pattern = "famio.org/manage*",      zone_name = "famio.org" },
-  { pattern = "famio.org/unsubscribe*", zone_name = "famio.org" },
+  { pattern = "famio.org/signup",          zone_name = "famio.org" },
+  { pattern = "famio.org/confirm*",        zone_name = "famio.org" },
+  { pattern = "famio.org/manage*",         zone_name = "famio.org" },
+  { pattern = "famio.org/unsubscribe*",    zone_name = "famio.org" },
+  { pattern = "famio.org/internal/smtp-send", zone_name = "famio.org" },
 ]
 
 # D1 database binding.
@@ -50,6 +51,7 @@ head_sampling_rate = 1
 # Test at: https://famio-worker-staging.bevn.workers.dev
 [env.staging]
 name = "famio-worker-staging"
+routes = []  # staging uses workers.dev URL only — no custom routes
 [[env.staging.d1_databases]]
 binding = "DB"
 database_name = "famio-staging"

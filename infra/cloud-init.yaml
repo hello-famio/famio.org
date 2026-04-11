@@ -1,0 +1,66 @@
+#cloud-config
+
+package_update: true
+package_upgrade: true
+packages:
+  - docker.io
+  - certbot
+
+# Create deploy user with Docker access
+users:
+  - name: ${deploy_user}
+    groups: docker
+    sudo: false
+    shell: /bin/bash
+
+write_files:
+  - path: /etc/famio-smtp/.env
+    permissions: "0600"
+    owner: root:root
+    content: |
+      SMTP_RELAY_SECRET=${smtp_relay_secret}
+      WORKER_INTERNAL_URL=${worker_internal_url}
+      PORT=587
+
+  - path: /etc/systemd/system/famio-smtp.service
+    content: |
+      [Unit]
+      Description=Famio SMTP proxy
+      After=docker.service network-online.target
+      Requires=docker.service
+      Wants=network-online.target
+
+      [Service]
+      Restart=always
+      RestartSec=5
+      ExecStartPre=-/usr/bin/docker stop famio-smtp
+      ExecStartPre=-/usr/bin/docker rm famio-smtp
+      ExecStartPre=/usr/bin/docker pull ${ghcr_image}
+      ExecStart=/usr/bin/docker run \
+        --name famio-smtp \
+        -p 587:587 \
+        --env-file /etc/famio-smtp/.env \
+        -e TLS_KEY=/certs/privkey.pem \
+        -e TLS_CERT=/certs/fullchain.pem \
+        -v /etc/letsencrypt/live/smtp.famio.org:/certs:ro \
+        -v /etc/letsencrypt/archive:/etc/letsencrypt/archive:ro \
+        ${ghcr_image}
+      ExecStop=/usr/bin/docker stop famio-smtp
+
+      [Install]
+      WantedBy=multi-user.target
+
+  # certbot renewal hook: restart the proxy after cert renewal
+  - path: /etc/letsencrypt/renewal-hooks/deploy/restart-famio-smtp.sh
+    permissions: "0755"
+    content: |
+      #!/bin/bash
+      systemctl restart famio-smtp
+
+runcmd:
+  - systemctl daemon-reload
+  - systemctl enable famio-smtp
+  # Note: famio-smtp will not start until after certbot issues the TLS cert.
+  # After provisioning, SSH in and run:
+  #   certbot certonly --standalone -d smtp.famio.org
+  # then: systemctl start famio-smtp

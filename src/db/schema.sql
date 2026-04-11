@@ -7,8 +7,12 @@ CREATE TABLE IF NOT EXISTS addresses (
   owner_email TEXT NOT NULL UNIQUE,     -- 1 address per owner
   tier TEXT NOT NULL DEFAULT 'free',    -- free | no_footer | custom_domain
   created_at INTEGER NOT NULL,
-  active INTEGER NOT NULL DEFAULT 1
+  active INTEGER NOT NULL DEFAULT 1,
+  smtp_password_hash TEXT               -- pbkdf2:sha256:<iter>:<salt_b64>:<hash_b64>
 );
+
+-- Migration for existing installs (safe to re-run — D1 ignores duplicate column errors):
+-- wrangler d1 execute famio --remote --command "ALTER TABLE addresses ADD COLUMN smtp_password_hash TEXT"
 
 CREATE TABLE IF NOT EXISTS members (
   id TEXT PRIMARY KEY,
