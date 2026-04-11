@@ -69,4 +69,5 @@ jobs:
           terraform apply -auto-approve \
             -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
             -var="smtp_relay_secret=${{ secrets.SMTP_RELAY_SECRET }}" \
-            -var="ghcr_image=ghcr.io/${{ github.repository_owner }}/famio-smtp:latest"
+            -var="ghcr_image=ghcr.io/${{ github.repository_owner }}/famio-smtp:latest" \
+            -var="deploy_ssh_pubkey=${{ secrets.GCP_SSH_PUBKEY }}"

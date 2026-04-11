@@ -29,6 +29,7 @@ resource "google_compute_instance" "smtp_proxy" {
       worker_internal_url = var.worker_internal_url
       deploy_user         = var.deploy_user
       ghcr_image          = var.ghcr_image
+      deploy_ssh_pubkey   = var.deploy_ssh_pubkey
     })
   }
 

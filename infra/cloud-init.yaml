@@ -12,6 +12,8 @@ users:
     groups: docker
     sudo: false
     shell: /bin/bash
+    ssh_authorized_keys:
+      - ${deploy_ssh_pubkey}
 
 write_files:
   - path: /etc/famio-smtp/.env

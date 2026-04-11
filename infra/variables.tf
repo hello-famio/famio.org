@@ -36,3 +36,8 @@ variable "ghcr_image" {
   description = "Full GHCR image reference, e.g. ghcr.io/your-org/famio-smtp:latest"
   type        = string
 }
+
+variable "deploy_ssh_pubkey" {
+  description = "SSH public key for the deploy user (added to authorized_keys on the VM)"
+  type        = string
+}
