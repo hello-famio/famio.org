@@ -5,8 +5,9 @@ package_upgrade: true
 packages:
   - docker.io
   - certbot
+  - stunnel4
 
-# Create deploy user with Docker access
+# Create deploy user — docker group access, no sudo, SSH key only
 users:
   - name: ${deploy_user}
     groups: docker
@@ -16,21 +17,51 @@ users:
       - ${deploy_ssh_pubkey}
 
 write_files:
+  # Deploy user can only run docker and restart the smtp service — nothing else
+  - path: /etc/sudoers.d/famio-deploy
+    permissions: "0440"
+    content: |
+      ${deploy_user} ALL=(ALL) NOPASSWD: /usr/bin/docker, /bin/systemctl restart famio-smtp, /bin/systemctl start famio-smtp
+
+  # SMTP proxy env — no TLS here, stunnel handles TLS on the host
   - path: /etc/famio-smtp/.env
     permissions: "0600"
     owner: root:root
     content: |
       SMTP_RELAY_SECRET=${smtp_relay_secret}
       WORKER_INTERNAL_URL=${worker_internal_url}
-      PORT=587
+      PORT=2525
 
+  # stunnel: terminates TLS on 587, forwards plain SMTP to container on 127.0.0.1:2525
+  - path: /etc/stunnel/famio-smtp.conf
+    permissions: "0600"
+    content: |
+      cert = /etc/letsencrypt/live/smtp.famio.org/fullchain.pem
+      key  = /etc/letsencrypt/live/smtp.famio.org/privkey.pem
+      pid  = /var/run/stunnel4/stunnel.pid
+
+      [smtp-587]
+      accept  = 587
+      connect = 127.0.0.1:2525
+      protocol = smtp
+
+  # Enable stunnel4 systemd service
+  - path: /etc/default/stunnel4
+    content: |
+      ENABLED=1
+      FILES="/etc/stunnel/famio-smtp.conf"
+      OPTIONS=""
+      PPP_RESTART=0
+      RLIMITS=""
+
+  # famio-smtp systemd service — plain SMTP on localhost:2525, stunnel provides TLS
   - path: /etc/systemd/system/famio-smtp.service
     content: |
       [Unit]
       Description=Famio SMTP proxy
-      After=docker.service network-online.target
+      After=docker.service network-online.target stunnel4.service
       Requires=docker.service
-      Wants=network-online.target
+      Wants=network-online.target stunnel4.service
 
       [Service]
       Restart=always
@@ -38,31 +69,24 @@ write_files:
       ExecStartPre=-/usr/bin/docker stop famio-smtp
       ExecStartPre=-/usr/bin/docker rm famio-smtp
       ExecStartPre=/usr/bin/docker pull ${ghcr_image}
-      ExecStart=/usr/bin/docker run \
-        --name famio-smtp \
-        -p 587:587 \
-        --env-file /etc/famio-smtp/.env \
-        -e TLS_KEY=/certs/privkey.pem \
-        -e TLS_CERT=/certs/fullchain.pem \
-        -v /etc/letsencrypt/live/smtp.famio.org:/certs:ro \
-        -v /etc/letsencrypt/archive:/etc/letsencrypt/archive:ro \
-        ${ghcr_image}
+      ExecStart=/usr/bin/docker run --name famio-smtp -p 127.0.0.1:2525:2525 --env-file /etc/famio-smtp/.env ${ghcr_image}
       ExecStop=/usr/bin/docker stop famio-smtp
 
       [Install]
       WantedBy=multi-user.target
 
-  # certbot renewal hook: restart the proxy after cert renewal
-  - path: /etc/letsencrypt/renewal-hooks/deploy/restart-famio-smtp.sh
+  # Certbot renewal hook — restart stunnel4 to pick up new cert
+  - path: /etc/letsencrypt/renewal-hooks/deploy/restart-stunnel.sh
     permissions: "0755"
     content: |
       #!/bin/bash
-      systemctl restart famio-smtp
+      systemctl restart stunnel4
 
 runcmd:
   - systemctl daemon-reload
+  - systemctl enable stunnel4
   - systemctl enable famio-smtp
-  # Note: famio-smtp will not start until after certbot issues the TLS cert.
+  # famio-smtp and stunnel4 will not start until certbot issues the TLS cert.
   # After provisioning, SSH in and run:
   #   certbot certonly --standalone -d smtp.famio.org
-  # then: systemctl start famio-smtp
+  # then: systemctl start stunnel4 famio-smtp
