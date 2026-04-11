@@ -44,8 +44,8 @@ jobs:
           username: ${{ secrets.GCP_VM_USER }}
           key: ${{ secrets.GCP_SSH_KEY }}
           script: |
-            docker pull ghcr.io/${{ github.repository_owner }}/famio-smtp:latest
-            systemctl restart famio-smtp
+            sudo docker pull ghcr.io/${{ github.repository_owner }}/famio-smtp:latest
+            sudo systemctl restart famio-smtp
 
   terraform-apply:
     name: Terraform apply
