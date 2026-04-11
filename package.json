@@ -6,7 +6,7 @@
     "dev": "wrangler dev",
     "dev:remote": "wrangler dev --remote",
     "setup:remote": "bash scripts/setup-remote.sh",
-    "deploy": "wrangler deploy",
+    "deploy": "wrangler deploy --env ''",
     "deploy:staging": "wrangler deploy --env staging",
     "dev:frontend": "bun scripts/dev-proxy.ts",
     "logs:staging": "bunx wrangler tail --env staging",
