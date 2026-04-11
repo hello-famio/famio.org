@@ -41,13 +41,17 @@ async function api(
 // ─── Reset devtokens so confirm/unsub tests are re-runnable ──────────────────
 
 beforeAll(() => {
+  // Reset testfamily to a clean seed state so tests are fully re-runnable.
+  // We delete all members/tokens for testfamily and re-seed rather than relying
+  // on INSERT OR IGNORE, which doesn't clean up extra rows left behind by
+  // previous runs (accumulated members hit the 6-member cap; alice gets deleted
+  // by the unsubscribe test).
   execSync(
-    `bunx wrangler d1 execute famio --remote --command "UPDATE tokens SET used = 0 WHERE token LIKE 'devtoken_%'"`,
+    `bunx wrangler d1 execute famio-staging --remote --command "DELETE FROM tokens WHERE address_id = 'addr_testfamily'; DELETE FROM members WHERE address_id = 'addr_testfamily'"`,
     { stdio: "pipe" }
   );
-  // Also ensure seed member rows exist for the devtoken flows
   execSync(
-    `bunx wrangler d1 execute famio --remote --file=src/db/seed.sql`,
+    `bunx wrangler d1 execute famio-staging --remote --file=src/db/seed.sql`,
     { stdio: "pipe" }
   );
 });
