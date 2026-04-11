@@ -329,7 +329,15 @@ async function handleSignup(request: Request, ctx: AppContext): Promise<Response
     .bind(addressId, name, ownerEmail, now, smtpHash)
     .run();
 
-  for (const email of allEmails) {
+  // Owner is auto-confirmed — they just signed up, no need to confirm separately.
+  const ownerNorm = ownerEmail.toLowerCase().trim();
+  await ctx.env.DB.prepare(
+    "INSERT INTO members (id, address_id, email, confirmed, confirmed_at, added_at) VALUES (?, ?, ?, 1, ?, ?)"
+  )
+    .bind(newId(), addressId, ownerNorm, now, now)
+    .run();
+
+  for (const email of validMembers) {
     await ctx.env.DB.prepare(
       "INSERT INTO members (id, address_id, email, confirmed, added_at) VALUES (?, ?, ?, 0, ?)"
     )
@@ -354,8 +362,8 @@ async function handleSignup(request: Request, ctx: AppContext): Promise<Response
     smtpPassword,
   });
 
-  // Confirmation tokens for all members
-  for (const email of allEmails) {
+  // Confirmation emails for invited members only (not the owner)
+  for (const email of validMembers) {
     const confirmToken = newToken();
     await ctx.env.DB.prepare(
       "INSERT INTO tokens (token, address_id, type, member_email, expires_at, used) VALUES (?, ?, 'confirm', ?, ?, 0)"
@@ -372,11 +380,11 @@ async function handleSignup(request: Request, ctx: AppContext): Promise<Response
     });
   }
 
-  // Create PurelyMail route (empty until members confirm)
+  // Create PurelyMail route with owner already confirmed
   await ctx.mail.createRoute({
     addressName: name,
     domain: ctx.domain,
-    members: [],
+    members: [ownerNorm],
   }).catch((err) => console.error("[PURELYMAIL] createRoute failed:", err));
 
   return json({ ok: true, address: `${name}@${ctx.domain}`, smtp_password: smtpPassword }, 201);
