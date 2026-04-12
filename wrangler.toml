@@ -13,7 +13,7 @@ routes = [
   { pattern = "famio.org/confirm*",        zone_name = "famio.org" },
   { pattern = "famio.org/manage*",         zone_name = "famio.org" },
   { pattern = "famio.org/unsubscribe*",    zone_name = "famio.org" },
-  { pattern = "famio.org/internal/smtp-send", zone_name = "famio.org" },
+  { pattern = "famio.org/internal/*",         zone_name = "famio.org" },
 ]
 
 # D1 database binding.
