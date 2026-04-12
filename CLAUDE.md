@@ -121,3 +121,17 @@ bunx wrangler d1 execute famio --remote --command "SELECT name, owner_email, tie
 # Delete an address and cascade
 bunx wrangler d1 execute famio --remote --command "DELETE FROM tokens WHERE address_id = (SELECT id FROM addresses WHERE name = 'NAME'); DELETE FROM members WHERE address_id = (SELECT id FROM addresses WHERE name = 'NAME'); DELETE FROM addresses WHERE name = 'NAME'"
 ```
+
+### Resending a magic link
+
+Use `scripts/resend-magic-link.sh` to recover manage access for an address owner. It reuses any existing valid token, or expires old ones and mints a fresh one.
+
+```bash
+# Show the manage URL (no email sent)
+./scripts/resend-magic-link.sh <familyname>
+
+# Show the manage URL and email it to the owner
+./scripts/resend-magic-link.sh <familyname> --send
+```
+
+The script also prints address info, members, and recent tokens for debugging.
