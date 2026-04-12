@@ -231,6 +231,9 @@ export default {
       if (request.method === "POST" && url.pathname === "/internal/smtp-send")
         return handleSmtpSend(request, ctx);
 
+      if (request.method === "GET" && url.pathname === "/internal/stats")
+        return handleStats(request, ctx);
+
       return html(
         errorPage({
           status: 404,
@@ -820,4 +823,23 @@ async function handleSmtpSend(request: Request, ctx: AppContext): Promise<Respon
   });
 
   return json({ ok: true });
+}
+
+async function handleStats(request: Request, ctx: AppContext): Promise<Response> {
+  const secret = request.headers.get("X-Relay-Secret");
+  if (!secret || !ctx.env.SMTP_RELAY_SECRET || secret !== ctx.env.SMTP_RELAY_SECRET) {
+    return json({ error: "Forbidden." }, 403);
+  }
+
+  const [addresses, confirmed, pending] = await Promise.all([
+    ctx.env.DB.prepare("SELECT COUNT(*) as n FROM addresses WHERE active = 1").first<{ n: number }>(),
+    ctx.env.DB.prepare("SELECT COUNT(*) as n FROM members WHERE confirmed = 1").first<{ n: number }>(),
+    ctx.env.DB.prepare("SELECT COUNT(*) as n FROM members WHERE confirmed = 0").first<{ n: number }>(),
+  ]);
+
+  return json({
+    addresses: addresses?.n ?? 0,
+    members_confirmed: confirmed?.n ?? 0,
+    members_pending: pending?.n ?? 0,
+  });
 }

@@ -23,6 +23,8 @@ jobs:
             --port 587 \
             --user "${{ secrets.SMTP_CANARY_USER }}" \
             --pass "${{ secrets.SMTP_CANARY_PASS }}" \
-            --to "${{ secrets.SMTP_CANARY_RECIPIENT }}"
+            --to "${{ secrets.SMTP_CANARY_RECIPIENT }}" \
+            --worker-url "https://famio.org" \
+            --worker-secret "${{ secrets.SMTP_RELAY_SECRET }}"
         # Exits 1 on any SMTP failure — GitHub marks the run as failed
         # and sends an email alert to the repo owner.
