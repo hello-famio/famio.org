@@ -43,6 +43,7 @@ interface ResendSendOpts {
   text?: string;
   replyTo?: string;
   attachments?: Array<{ filename: string; content: string }>; // content is base64
+  headers?: Record<string, string>;
 }
 
 async function resendSend(apiKey: string, opts: ResendSendOpts): Promise<void> {
@@ -55,6 +56,7 @@ async function resendSend(apiKey: string, opts: ResendSendOpts): Promise<void> {
   if (opts.text) payload.text = opts.text;
   if (opts.replyTo) payload.reply_to = opts.replyTo;
   if (opts.attachments?.length) payload.attachments = opts.attachments;
+  if (opts.headers) payload.headers = opts.headers;
 
   const res = await fetch(`${RESEND_BASE}/emails`, {
     method: "POST",
@@ -98,12 +100,13 @@ export interface NotifyOwnerOpts {
 }
 
 export interface SendOutboundOpts {
-  rawMessage: string;       // raw MIME from proxy, decoded from base64
-  envelopeFrom: string;     // SMTP MAIL FROM
-  envelopeTo: string[];     // SMTP RCPT TO
+  rawMessage: string;        // raw MIME from proxy, decoded from base64
+  envelopeFrom: string;      // SMTP MAIL FROM
+  envelopeTo: string;        // single recipient — callers loop per-recipient
   addressName: string;
   domain: string;
-  tier: string;             // "no_footer" skips injection
+  tier: string;              // "no_footer" skips injection
+  unsubscribeUrl?: string;   // when set, adds List-Unsubscribe headers
 }
 
 export interface EmailService {
@@ -232,7 +235,7 @@ export function resendEmailService(apiKey: string): EmailService {
       await resendSend(apiKey, { to, subject: `Member unsubscribed from ${address}`, html });
     },
 
-    async sendOutboundWithFooter({ rawMessage, envelopeTo, addressName, domain, tier }) {
+    async sendOutboundWithFooter({ rawMessage, envelopeTo, addressName, domain, tier, unsubscribeUrl }) {
       const rawBytes = Uint8Array.from(rawMessage, (c) => c.charCodeAt(0));
       const parsed = await new PostalMime().parse(rawBytes.buffer);
 
@@ -253,6 +256,12 @@ export function resendEmailService(apiKey: string): EmailService {
 
       const replyTo = parsed.replyTo?.[0]?.address;
 
+      const headers: Record<string, string> = {};
+      if (unsubscribeUrl) {
+        headers["List-Unsubscribe"] = `<${unsubscribeUrl}>`;
+        headers["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click";
+      }
+
       await resendSend(apiKey, {
         from: `${addressName}@${domain}`,
         to: envelopeTo,
@@ -261,6 +270,7 @@ export function resendEmailService(apiKey: string): EmailService {
         html,
         replyTo,
         attachments: attachments.length ? attachments : undefined,
+        headers: Object.keys(headers).length ? headers : undefined,
       });
     },
   };
@@ -303,11 +313,12 @@ export function stubEmailService(): EmailService {
       );
     },
 
-    async sendOutboundWithFooter({ rawMessage, envelopeTo, addressName, domain }) {
+    async sendOutboundWithFooter({ rawMessage, envelopeTo, addressName, domain, unsubscribeUrl }) {
       console.log(
-        `\n[EMAIL] Outbound send → ${envelopeTo.join(", ")}\n` +
+        `\n[EMAIL] Outbound send → ${envelopeTo}\n` +
         `  From    : ${addressName}@${domain}\n` +
-        `  Bytes   : ${rawMessage.length}\n`
+        `  Bytes   : ${rawMessage.length}\n` +
+        (unsubscribeUrl ? `  Unsub   : ${unsubscribeUrl}\n` : "")
       );
     },
   };

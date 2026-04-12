@@ -812,15 +812,32 @@ async function handleSmtpSend(request: Request, ctx: AppContext): Promise<Respon
 
   // Decode base64 → binary string → pass to postal-mime via email service
   const rawMessage = atob(raw_message_b64);
+  const now = Math.floor(Date.now() / 1000);
 
-  await ctx.email.sendOutboundWithFooter({
-    rawMessage,
-    envelopeFrom: envelope_from ?? username,
-    envelopeTo: envelope_to,
-    addressName: address.name,
-    domain: ctx.domain,
-    tier: address.tier,
-  });
+  for (const recipientEmail of envelope_to) {
+    const member = await ctx.env.DB.prepare(
+      "SELECT id FROM members WHERE address_id = ? AND email = ? AND confirmed = 1"
+    ).bind(address.id, recipientEmail).first<{ id: string }>();
+
+    let unsubscribeUrl: string | undefined;
+    if (member) {
+      const unsubToken = newToken();
+      await ctx.env.DB.prepare(
+        "INSERT INTO tokens (token, address_id, type, member_email, expires_at, used) VALUES (?, ?, 'unsubscribe', ?, ?, 0)"
+      ).bind(unsubToken, address.id, recipientEmail, now + 90 * 24 * 60 * 60).run();
+      unsubscribeUrl = `${ctx.baseUrl}/unsubscribe?token=${unsubToken}`;
+    }
+
+    await ctx.email.sendOutboundWithFooter({
+      rawMessage,
+      envelopeFrom: envelope_from ?? username,
+      envelopeTo: recipientEmail,
+      addressName: address.name,
+      domain: ctx.domain,
+      tier: address.tier,
+      unsubscribeUrl,
+    });
+  }
 
   return json({ ok: true });
 }
