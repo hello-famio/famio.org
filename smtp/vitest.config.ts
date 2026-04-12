@@ -8,5 +8,8 @@ export default defineConfig({
     hookTimeout: 15000,
     pool: "forks",
     poolOptions: { forks: { singleFork: true } },
+    reporters: process.env.GITHUB_ACTIONS
+      ? ["verbose", "github-actions"]
+      : ["verbose"],
   },
 });
