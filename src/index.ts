@@ -754,7 +754,7 @@ async function handleDeleteAddress(
       addressName: address.name,
       domain: ctx.domain,
       email: member.email,
-    });
+    }).catch((err) => console.error("[PURELYMAIL] removeMemberFromRoute failed:", err));
   }
 
   await ctx.env.DB.prepare("DELETE FROM tokens WHERE address_id = ?").bind(address.id).run();

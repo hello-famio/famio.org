@@ -17,7 +17,7 @@ export function injectTextFooter(
   domain: string
 ): string | undefined {
   if (!text) return undefined;
-  return text + `\n\n--\nSent via ${addressName}@${domain} · famio.org`;
+  return text + `\n\n--\nSent via ${addressName}@${domain} · Get your own family address at famio.org`;
 }
 
 export function injectHtmlFooter(

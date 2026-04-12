@@ -734,7 +734,7 @@
                         if (res.ok) {
                             formWrap.style.display = 'none';
                             document.getElementById('signup-success-msg').textContent =
-                                'Check your email — we sent a magic link to ' + ownerEmail + ' to manage ' + name + '@famio.org.';
+                                'Check your email — we sent a magic link to ' + ownerEmail + ' to manage ' + name + '@famio.org. If you don\'t see it, check your spam folder and mark it as "Not spam".';
                             successCard.classList.add('visible');
                         } else {
                             var data = await res.json().catch(function() { return {}; });

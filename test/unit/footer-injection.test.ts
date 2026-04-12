@@ -12,7 +12,7 @@ const DOMAIN = "famio.org";
 describe("injectTextFooter", () => {
   it("appends footer after double newline", () => {
     const result = injectTextFooter("Hello family.", NAME, DOMAIN);
-    expect(result).toBe("Hello family.\n\n--\nSent via smiths@famio.org · famio.org");
+    expect(result).toBe("Hello family.\n\n--\nSent via smiths@famio.org · Get your own family address at famio.org");
   });
 
   it("preserves existing content exactly", () => {

@@ -343,6 +343,7 @@ function layout(
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${escHtml(title)} — Famio</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>${SHARED_CSS}</style>
 </head>
 <body${bodyAttrs ? " " + bodyAttrs : ""}>
@@ -513,7 +514,7 @@ export function managePage(p: ManageParams): string {
     </div>
 
     <!-- Delete address confirm dialog -->
-    <dialog id="delete-dialog" style="border:none;border-radius:16px;padding:32px;max-width:420px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.15)">
+    <dialog id="delete-dialog" style="border:none;border-radius:16px;padding:32px;max-width:420px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.15);margin:auto">
       <h2 style="font-size:1.2rem;font-weight:700;color:#2d3748;margin-bottom:8px">Delete ${address}?</h2>
       <p style="color:#4a5568;font-size:0.95rem;margin-bottom:8px">This will permanently:</p>
       <ul style="color:#4a5568;font-size:0.9rem;padding-left:20px;margin-bottom:20px;line-height:1.8">
