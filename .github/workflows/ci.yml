@@ -47,7 +47,9 @@ jobs:
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
         run: |
-          terraform plan \
+          # -input=false: fail fast on a missing var instead of hanging on a prompt
+          terraform plan -input=false \
             -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
             -var="smtp_relay_secret=dummy-for-plan" \
-            -var="ghcr_image=ghcr.io/${{ github.repository_owner }}/famio-smtp:latest"
+            -var="ghcr_image=ghcr.io/${{ github.repository_owner }}/famio-smtp:latest" \
+            -var="deploy_ssh_pubkey=${{ secrets.GCP_SSH_PUBKEY }}"
