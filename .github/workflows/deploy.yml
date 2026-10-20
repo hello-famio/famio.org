@@ -43,9 +43,8 @@ jobs:
           host: ${{ secrets.GCP_VM_IP }}
           username: ${{ secrets.GCP_VM_USER }}
           key: ${{ secrets.GCP_SSH_KEY }}
-          script: |
-            sudo docker pull ghcr.io/${{ github.repository_owner }}/famio-smtp:latest
-            sudo systemctl restart famio-smtp
+          # famio-smtp.service pulls the latest image in ExecStartPre
+          script: sudo systemctl restart famio-smtp
 
   terraform-apply:
     name: Terraform apply

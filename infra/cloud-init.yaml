@@ -7,21 +7,20 @@ packages:
   - certbot
   - stunnel4
 
-# Create deploy user — docker group access, no sudo, SSH key only
+# Create deploy user — no docker access, no general sudo, SSH key only.
+# Docker group membership or sudo docker would both be root-equivalent.
 users:
   - name: ${deploy_user}
-    groups: docker
     sudo: false
     shell: /bin/bash
     ssh_authorized_keys:
       - ${deploy_ssh_pubkey}
 
 write_files:
-  # Deploy user can only run docker and restart the smtp service — nothing else
+  # Deploy user can only (re)start the smtp service — the unit pulls the latest image itself
   - path: /etc/sudoers.d/famio-deploy
     permissions: "0440"
     content: |
-      ${deploy_user} ALL=(ALL) NOPASSWD: /usr/bin/docker
       ${deploy_user} ALL=(ALL) NOPASSWD: /bin/systemctl restart famio-smtp
       ${deploy_user} ALL=(ALL) NOPASSWD: /bin/systemctl start famio-smtp
 
