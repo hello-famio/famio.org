@@ -5,10 +5,12 @@
  *   bun scripts/canary.ts --host smtp.famio.org --port 587 \
  *     --user smiths@famio.org --pass <password> --to monitor@example.com
  *
- * Exits 0 on success, 1 on any SMTP failure (GitHub Actions marks run as failed).
+ * Exits 0 on success, 1 on any SMTP failure or if the TLS cert expires within
+ * --cert-min-days (default 14) days (GitHub Actions marks run as failed).
  */
 
 import nodemailer from "nodemailer";
+import { checkCertExpiry, fetchStartTlsCert } from "./cert-check";
 
 function arg(flag: string): string {
   const idx = process.argv.indexOf(flag);
@@ -32,6 +34,8 @@ const pass = arg("--pass");
 const to = arg("--to");
 const workerUrl = optionalArg("--worker-url");
 const workerSecret = optionalArg("--worker-secret");
+// Let's Encrypt certs last 90 days and certbot renews at 30 left, so <14 means renewal is broken
+const certMinDays = parseInt(optionalArg("--cert-min-days") ?? "14");
 
 interface Stats {
   addresses: number;
@@ -56,7 +60,29 @@ async function fetchStats(): Promise<Stats | null> {
   }
 }
 
+async function checkCert() {
+  try {
+    const cert = await fetchStartTlsCert(host, port);
+    const status = checkCertExpiry(cert.validTo, new Date(), certMinDays);
+    const expiry = cert.validTo.toISOString();
+    if (!status.ok && status.reason === "expired") {
+      console.error(`[CANARY] TLS cert for ${cert.subject} EXPIRED on ${expiry} — check certbot renewal on the VM`);
+      process.exit(1);
+    }
+    if (!status.ok) {
+      console.error(`[CANARY] TLS cert for ${cert.subject} expires in ${status.daysLeft} days (${expiry}) — certbot renewal is not working`);
+      process.exit(1);
+    }
+    console.log(`[CANARY] TLS cert valid for ${status.daysLeft} more days (${expiry}) ✓`);
+  } catch (err) {
+    console.error("[CANARY] TLS cert check failed:", err);
+    process.exit(1);
+  }
+}
+
 async function main() {
+  await checkCert();
+
   const transporter = nodemailer.createTransport({
     host,
     port,

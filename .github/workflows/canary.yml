@@ -9,6 +9,9 @@ jobs:
   smtp-canary:
     name: SMTP relay health check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write # for the keepalive step
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
@@ -26,5 +29,14 @@ jobs:
             --to "${{ secrets.SMTP_CANARY_RECIPIENT }}" \
             --worker-url "https://famio.org" \
             --worker-secret "${{ secrets.SMTP_RELAY_SECRET }}"
-        # Exits 1 on any SMTP failure — GitHub marks the run as failed
-        # and sends an email alert to the repo owner.
+        # Exits 1 on any SMTP failure or a TLS cert expiring within 14 days —
+        # GitHub marks the run as failed and sends an email alert to the repo owner.
+      - name: Keep schedule alive
+        # GitHub disables scheduled workflows in public repos after 60 days without
+        # commits (this happened 2026-06-11 and hid an expired cert for 4 months).
+        # Re-enabling via the API resets that inactivity timer. Runs even if the
+        # canary failed, so a broken relay doesn't also switch off the alerts.
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/canary.yml/enable"

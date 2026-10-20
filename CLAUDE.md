@@ -76,7 +76,7 @@ Thin Node.js SMTP server. Accepts authenticated connections on port 2525 (stunne
 
 - `bun install` — install dependencies
 - `bun run test` — run proxy unit tests
-- `bun scripts/canary.ts --host smtp.famio.org --port 587 --user ... --pass ... --to ...` — manual health check
+- `bun scripts/canary.ts --host smtp.famio.org --port 587 --user ... --pass ... --to ...` — manual health check (also fails if the TLS cert expires within 14 days; override with `--cert-min-days`)
 
 Docker image published to `ghcr.io/hello-famio/famio.org/famio-smtp:latest` on every push to main.
 
@@ -108,7 +108,7 @@ After provisioning a new VM, SSH in and run `certbot certonly --standalone -d sm
 
 - **CI** (`.github/workflows/ci.yml`) — runs on PR and push to main: unit tests, SMTP proxy tests, Terraform plan (PR only)
 - **Deploy** (`.github/workflows/deploy.yml`) — runs on push to main: deploys Worker, builds and pushes Docker image, redeploys GCP VM, runs Terraform apply
-- **Canary** (`.github/workflows/canary.yml`) — runs hourly: sends test email via SMTP relay and fetches D1 stats, alerts on failure
+- **Canary** (`.github/workflows/canary.yml`) — runs hourly: checks TLS cert expiry, sends test email via SMTP relay and fetches D1 stats, alerts on failure. Re-enables itself each run so GitHub's 60-day inactivity rule can't switch it off
 
 ## Administration
 
