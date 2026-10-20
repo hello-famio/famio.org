@@ -14,6 +14,22 @@ resource "google_compute_firewall" "smtp_submission" {
   target_tags   = ["famio-smtp-proxy"]
 }
 
+resource "google_compute_firewall" "acme_http" {
+  name    = "famio-smtp-proxy-acme-http"
+  network = "default"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["80"]
+  }
+
+  # certbot renews with the standalone HTTP-01 authenticator, which needs port 80
+  # reachable from Let's Encrypt. Their validation IPs aren't published, so this
+  # can't be narrowed. Nothing else should listen on 80 (nginx was disabled for this).
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["famio-smtp-proxy"]
+}
+
 resource "google_compute_firewall" "https_egress_allowed" {
   name      = "famio-smtp-proxy-allow-https-egress"
   network   = "default"
